@@ -1,186 +1,207 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, TextInput, Image, Dimensions } from 'react-native';
-// Assuming 'colors' contains essential theme colors, but we'll define the specific login colors here.
-// import colors from '../theme';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, SafeAreaView } from 'react-native';
+import colors from '../theme'; // Assuming '../theme.ts' for colors
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth'; 
+// Assuming 'auth' is initialized and imported from your Firebase setup elsewhere
+// For this example, we'll keep the import concise.
+// const auth = getAuth(firebaseApp); 
+// Note: You must ensure 'auth' is accessible here.
 
-// --- Dimensions for responsive layout ---
-const { width } = Dimensions.get('window');
+// --- Asset Paths based on your file structure (screens/assets) ---
+const LOGO_IMAGE = require('./assets/logo.png');
+const ILLUSTRATION_IMAGE = require('./assets/illustration.png');
+const GOOGLE_ICON = require('./assets/google.png');
+const APPLE_ICON = require('./assets/apple.png');
+const FACEBOOK_ICON = require('./assets/facebook.png');
 
-// --- Custom Colors based on the image ---
-const customColors = {
-    beige: '#f5f0e3',        // Background
-    inputBorder: '#e0e0e0', // Input border
-    loginGreen: '#a6c7b3',   // Log In button
-    linkTerracotta: '#e29587', // Forgot Password / Sign up links
-    text: '#333333',         // Dark text
-    lightText: '#888888',    // Placeholder text
-    separator: '#aaaaaa',    // 'or' line
-};
+interface LoginProps {
+    onSuccess: () => void; // Navigates to home/dashboard
+    onRegister: () => void;   // Navigates to register screen
+    onGoBack?: () => void; // Optional: for the back arrow
+}
 
-// --- PLACEHOLDERS (Replace these with your actual local image imports) ---
-const LOGO_IMAGE = require('./assets/logo.png'); // Update path
-const ILLUSTRATION_IMAGE = require('./assets/illustration.png'); // Update path
-const GOOGLE_ICON = require('./assets/google.png'); // Update path
-const APPLE_ICON = require('./assets/apple.png'); // Update path
-const FACEBOOK_ICON = require('./assets/facebook.png'); // Update path
-
-
-const Login: React.FC<{ onSuccess: () => void; onRegister: () => void; onForgot: () => void }> = ({ onSuccess, onRegister, onForgot }) => {
+const Login: React.FC<LoginProps> = ({ onSuccess, onRegister, onGoBack }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+
+    // Placeholder for the real Firebase Auth instance (replace with your actual import)
+    const auth: any = {}; // TEMPORARY: Replace with actual auth instance
+
+    const handleLogin = async () => {
+        setError('');
+        setLoading(true);
+        try {
+            // --- FIREBASE AUTH LOGIC ---
+            // await signInWithEmailAndPassword(auth, email, password); 
+            // onSuccess(); // Use the success callback prop
+            
+            // --- TEMPORARY MOCK ---
+            if (email === 'test@swap.com' && password === 'password') {
+                setTimeout(onSuccess, 500);
+            } else {
+                setError('Invalid credentials.');
+            }
+            // --- END MOCK ---
+            
+        } catch (err: any) {
+            console.error("Login Error:", err);
+            setError('Login failed. Check console for details.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
-        // The main container uses the light beige background color
-        <View style={styles.container}>
-            {/* Header: Back Arrow (Using a simple Text placeholder for the icon) */}
+        <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => console.log('Go back')}>
-                    <Text style={styles.backIcon}>{'<'}</Text>
-                </TouchableOpacity>
-                {/* Space for the status bar details (signal, battery) */}
+                {onGoBack && (
+                    <TouchableOpacity onPress={onGoBack} style={styles.backButton}>
+                        <Text style={styles.backButtonText}>←</Text> 
+                    </TouchableOpacity>
+                )}
+                <Text style={styles.statusBarText}>9:41</Text>
             </View>
 
-            {/* Logo */}
-            <Image
-                source={LOGO_IMAGE}
-                style={styles.logo}
-                resizeMode="contain"
-            />
+            <View style={styles.content}>
+                <Image source={LOGO_IMAGE} style={styles.logo} />
+                <Text style={styles.welcomeText}>Welcome Back</Text>
+                
+                <Image source={ILLUSTRATION_IMAGE} style={styles.illustration} />
 
-            {/* Welcome Text - Requires a custom font to truly match the look */}
-            <Text style={styles.welcomeText}>Welcome Back</Text>
+                <View style={styles.inputContainer}>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Email"
+                        placeholderTextColor={colors.grayPlaceholder || '#A0A0A0'}
+                        value={email}
+                        onChangeText={setEmail}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                    />
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Password"
+                        placeholderTextColor={colors.grayPlaceholder || '#A0A0A0'}
+                        value={password}
+                        onChangeText={setPassword}
+                        secureTextEntry
+                    />
+                </View>
 
-            {/* Illustration */}
-            <Image
-                source={ILLUSTRATION_IMAGE}
-                style={styles.illustration}
-                resizeMode="contain"
-            />
+                {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-            {/* Input Fields */}
-            <View style={styles.inputContainer}>
-                <TextInput
-                    style={styles.input}
-                    placeholder="Email"
-                    placeholderTextColor={customColors.lightText}
-                    value={email}
-                    onChangeText={setEmail}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                />
-                <TextInput
-                    style={styles.input}
-                    placeholder="Password"
-                    placeholderTextColor={customColors.lightText}
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry
-                />
+                <TouchableOpacity
+                    style={[styles.loginButton, { backgroundColor: colors.swapGreen || '#A6C7B3' }]}
+                    onPress={handleLogin}
+                    disabled={loading}
+                >
+                    <Text style={styles.loginButtonText}>{loading ? 'Logging In...' : 'Log In'}</Text>
+                </TouchableOpacity>
+
+                <View style={styles.linkContainer}>
+                    <TouchableOpacity>
+                        <Text style={[styles.linkText, { color: colors.swapRust || '#E29587' }]}>Forgot Password</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={onRegister}>
+                        <Text style={[styles.linkText, { color: colors.swapRust || '#E29587' }]}>Sign up</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <View style={styles.orContainer}>
+                    <View style={styles.orLine} />
+                    <Text style={styles.orText}>or</Text>
+                    <View style={styles.orLine} />
+                </View>
+
+                <View style={styles.socialButtons}>
+                    <TouchableOpacity style={styles.socialButtonWrapper}>
+                        <Image source={GOOGLE_ICON} style={styles.socialIcon} />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.socialButtonWrapper}>
+                        <Image source={APPLE_ICON} style={styles.socialIcon} />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.socialButtonWrapper}>
+                        <Image source={FACEBOOK_ICON} style={styles.socialIcon} />
+                    </TouchableOpacity>
+                </View>
             </View>
-
-            {/* Log In Button */}
-            <TouchableOpacity style={styles.loginButton} onPress={onSuccess}>
-                <Text style={styles.loginButtonText}>Log In</Text>
-            </TouchableOpacity>
-
-            {/* Forgot Password / Sign Up Links */}
-            <View style={styles.linkContainer}>
-                <TouchableOpacity onPress={onForgot}>
-                    <Text style={styles.linkText}>Forgot Password</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={onRegister}>
-                    <Text style={styles.linkText}>Sign up</Text>
-                </TouchableOpacity>
-            </View>
-
-            {/* OR Separator */}
-            <View style={styles.separatorContainer}>
-                <View style={styles.separatorLine} />
-                <Text style={styles.separatorText}>or</Text>
-                <View style={styles.separatorLine} />
-            </View>
-
-            {/* Social Login Icons */}
-            <View style={styles.socialContainer}>
-                <TouchableOpacity style={styles.socialIconWrapper}>
-                    <Image source={GOOGLE_ICON} style={styles.socialIcon} />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.socialIconWrapper}>
-                    <Image source={APPLE_ICON} style={styles.socialIcon} />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.socialIconWrapper}>
-                    <Image source={FACEBOOK_ICON} style={styles.socialIcon} />
-                </TouchableOpacity>
-            </View>
-        </View>
+        </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: customColors.beige,
+    safeArea: { flex: 1 },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 20,
-    },
-    header: {
+        paddingTop: 10,
         width: '100%',
-        paddingTop: 50, // To account for safe area/status bar
-        marginBottom: 20,
-        alignItems: 'flex-start',
     },
-    backIcon: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: customColors.text,
+    backButton: { padding: 5 },
+    backButtonText: { fontSize: 24, color: '#333' },
+    statusBarText: { fontSize: 13, color: '#888' },
+    content: {
+        flex: 1,
+        alignItems: 'center',
+        paddingHorizontal: 30,
+        paddingTop: 10,
     },
     logo: {
-        width: width * 0.45,
-        height: 80,
+        width: 150, 
+        height: 60,
+        resizeMode: 'contain',
         marginBottom: 10,
     },
     welcomeText: {
-        fontSize: 36,
-        // Font needs to be loaded separately for the curly, serif look
-        // You might use a custom font family like 'PlayfairDisplay-Bold' if imported
-        fontWeight: 'normal', 
-        color: customColors.text,
+        fontSize: 34,
+        fontWeight: 'bold', // Use normal if custom font is applied
+        color: colors.swapDark || '#1E1E1E',
         marginBottom: 20,
     },
     illustration: {
-        width: width * 0.75,
-        height: width * 0.5,
+        width: '100%',
+        height: 200,
+        resizeMode: 'contain',
         marginBottom: 20,
     },
     inputContainer: {
-        width: '90%',
-        maxWidth: 400,
-        marginBottom: 10,
+        width: '100%',
+        alignItems: 'center',
     },
     input: {
-        backgroundColor: '#fff',
+        width: '100%',
         height: 55,
+        backgroundColor: '#fff',
         borderRadius: 12,
-        paddingHorizontal: 15,
+        paddingHorizontal: 20,
         marginBottom: 15,
         borderWidth: 1,
-        borderColor: customColors.inputBorder,
+        borderColor: colors.grayBorder || '#E0E0E0',
         fontSize: 16,
-        color: customColors.text,
+        color: colors.text || '#333',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.05,
-        shadowRadius: 1,
+        shadowRadius: 2,
         elevation: 1,
     },
+    errorText: {
+        color: 'red',
+        fontSize: 14,
+        textAlign: 'center',
+        marginBottom: 10,
+    },
     loginButton: {
-        width: '90%',
-        maxWidth: 400,
-        backgroundColor: customColors.loginGreen,
-        paddingVertical: 15,
+        width: '100%',
+        height: 55,
         borderRadius: 12,
+        justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 10,
+        marginTop: 5,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.15,
@@ -190,49 +211,48 @@ const styles = StyleSheet.create({
     loginButtonText: {
         color: '#fff',
         fontSize: 18,
-        fontWeight: '600',
+        fontWeight: '700',
     },
     linkContainer: {
-        alignItems: 'center',
-        marginTop: 10,
-        marginBottom: 20,
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        width: '70%',
+        marginTop: 15,
+        marginBottom: 10,
     },
     linkText: {
-        color: customColors.linkTerracotta,
-        fontSize: 14,
-        textDecorationLine: 'none', // Removed underline for Forgot Password, added for Sign up below
-        marginTop: 5,
+        fontSize: 13,
     },
-    separatorContainer: {
+    orContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        width: '80%',
-        maxWidth: 350,
+        width: '100%',
+        maxWidth: 300,
         marginVertical: 20,
     },
-    separatorLine: {
+    orLine: {
         flex: 1,
         height: 1,
-        backgroundColor: customColors.separator,
+        backgroundColor: colors.separator || '#AAAAAA',
     },
-    separatorText: {
+    orText: {
         marginHorizontal: 10,
-        color: customColors.lightText,
-        fontSize: 14,
+        color: colors.grayPlaceholder || '#A0A0A0',
+        fontSize: 13,
     },
-    socialContainer: {
+    socialButtons: {
         flexDirection: 'row',
-        justifyContent: 'center',
-        width: '90%',
+        justifyContent: 'space-around',
+        width: '100%',
+        maxWidth: 250,
     },
-    socialIconWrapper: {
+    socialButtonWrapper: {
         width: 50,
         height: 50,
-        borderRadius: 25,
         backgroundColor: '#fff',
-        alignItems: 'center',
+        borderRadius: 25,
         justifyContent: 'center',
-        marginHorizontal: 10,
+        alignItems: 'center',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
@@ -242,6 +262,7 @@ const styles = StyleSheet.create({
     socialIcon: {
         width: 25,
         height: 25,
+        resizeMode: 'contain',
     },
 });
 
